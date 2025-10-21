@@ -52,7 +52,7 @@ void bubbleSort(Elemtype A[], int n)
         bool flag = false;
         for (int j = n - 1; j > i; --j) {
             if (A[j-1] > A[j]) {
-                int temp = A[j];
+                Elemtype temp = A[j];
                 A[j] = A[j-1];
                 A[j-1] = temp;
                 flag = true;
@@ -62,7 +62,7 @@ void bubbleSort(Elemtype A[], int n)
     }
 }
 
-int partition(Elemtype A[], int low, int high) {
+static int QS_partition(Elemtype A[], int low, int high) {
     Elemtype pivot = A[low];
     while (low < high) {
         while (low < high && A[high] >= pivot) --high;
@@ -77,8 +77,111 @@ int partition(Elemtype A[], int low, int high) {
 void quickSort(Elemtype A[], int low, int high)
 {
     if (low < high) {
-        int pivotpos = partition(A, low, high);
+        int pivotpos = QS_partition(A, low, high);
         quickSort(A, low, pivotpos - 1);
         quickSort(A, pivotpos + 1, high);
     }
+}
+
+void simpleSelectSort(Elemtype A[], int n)
+{
+    for (int i = 0; i < n; ++i) {
+        int min = i;
+        for (int j = i + 1; j < n; ++j)
+            if (A[j] < A[min])
+                min = j;
+        if (min != i) {
+            Elemtype temp = A[min];
+            A[min] = A[i];
+            A[i] = temp;
+        }
+    }
+}
+
+static void HS_buildMaxHeap(Elemtype A[], int len)
+{
+    for (int i = len / 2; i > 0; --i) {
+        HS_headAdjust(A, i, len);
+    }
+}
+
+static void HS_headAdjust(Elemtype A[], int k, int len)
+{
+    A[0] = A[k];
+    for (int i = 2 * k; i <= len; i *= 2) {
+        if (i < len && A[i] < A[i+1])
+            ++i;
+        if (A[0] > A[i])
+            break;
+        else {
+            A[k] = A[i];
+            k = i;
+        }
+    }
+    A[k] = A[0];
+}
+
+void heapSort(Elemtype A[], int len)
+{
+    HS_buildMaxHeap(A, len);
+    for (int i = len; i > 1; --i) {
+        Elemtype temp = A[i];
+        A[i] = A[1];
+        A[1] = temp;
+        HS_headAdjust(A, 1, i-1);
+    }
+}
+
+
+void BMS_merge(Elemtype A[], int low, int mid, int high, Elemtype B[])
+{
+    int i, j, k;
+    for (k = low; k <= high; ++k)
+        B[k] = A[k];
+    for (i = low, j = mid + 1, k = i; i <= mid && j <= high; ++k) 
+        if (B[i] <= B[j])
+            A[k] = B[i++];
+        else   
+            A[k] = B[j++];
+    while (i <= mid)  A[k++] = B[i++];
+    while (j <= high) A[k++] = B[j++];
+}
+
+void binaryMergeSort1(Elemtype A[], int low, int high, Elemtype B[]) {
+    if (low < high) {
+        int mid = (low + high) / 2;
+        binaryMergeSort1(A, low, mid, B);
+        binaryMergeSort1(A, mid+1, high, B);
+        BMS_merge(A, low, mid, high, B);
+    }
+}
+
+void binaryMergeSort(Elemtype A[], int n) {
+    Elemtype *B = new Elemtype[n+1];
+    binaryMergeSort1(A, 0, n, B);
+    delete B;
+}
+
+void countingSort(Elemtype A[], int n)
+{   // 假设A中都是非负整数
+    Elemtype * B = new Elemtype[n];
+    Elemtype * count = new Elemtype[n];
+
+    for (int i = 0; i < n; ++i) 
+        ++count[A[i]];
+    
+    for (int i = 1; i < n; ++i)
+        count[i] += count[i-1];
+
+    for (int i = 0; i < n; ++i) {
+        B[count[A[i]]-1] = count[i];
+        --count[A[i]];
+    }
+        
+
+    for (int i = 0; i < n; ++i) {
+        A[i] = B[i];
+    }
+    delete B;
+    delete count;
 }
